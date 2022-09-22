@@ -15,8 +15,8 @@ class CallLog:
     INFO = 20
     DEBUG = 10
     NOTSET = 0
-    _STREAM_HANDLER_FORMAT = "[%(asctime)s]\t[%(filename)s:%(lineno)s] >> %(message)s"
-    _FILE_HANDLER_FORMAT = "[%(asctime)s] / %(levelname)s / %(filename)s / line:%(lineno)s\t>> %(message)s"
+    _STREAM_HANDLER_FORMAT = "[%(asctime)s] [%(filename)s:%(lineno)s] >> %(message)s"
+    _FILE_HANDLER_FORMAT = "[%(asctime)s] / %(levelname)s / %(filename)s / line:%(lineno)s >> %(message)s"
     _TIME_FORMAT = "%y%m%d_%Hh%Mm"
     _str_Level = {
         'c': logging.CRITICAL,
@@ -48,8 +48,11 @@ class CallLog:
     def __del__(self):
         for handler in self._logger.handlers:
             if handler.name == "file_handler":
-                self._logger.removeHandler(handler)
-                handler.close()
+                try:
+                    self._logger.removeHandler(handler)
+                    handler.close()
+                except:
+                    pass
     @staticmethod
     def _extension_check(extension):
         if extension[0] == ".":
@@ -75,7 +78,7 @@ class CallLog:
             log_level = self._call_level(log_level)
             assert self._root_logger_log_level <= log_level, "Handler level is low than root log level"
             handler.setLevel(log_level)
-        handler.setFormatter(CallLog.TimeFormatter(CallLog._FILE_HANDLER_FORMAT))
+        handler.setFormatter(CallLog.TimeFormatter(CallLog._FILE_HANDLER_FORMAT, datefmt='%Y-%m-%d %H:%M:%S'))
         handler.name = name
         self._logger.addHandler(handler)
         self._file_handler = handler
@@ -95,7 +98,10 @@ class CallLog:
         self._logger.addHandler(handler)
         self._stream_handler = handler
         return
-
+    def remove_file_handler(self):
+        self._logger.removeHandler(self._file_handler)
+        self._file_handler.close()
+        
     def debug(self, msg, *args, **kwargs):
         self._logger.debug(msg, *args, **kwargs)
     def info(self, msg, *args, **kwargs):
@@ -109,13 +115,13 @@ class CallLog:
     def critical(self,msg, *args, **kwargs):
         self._logger.critical(msg, *args, **kwargs)
     def handle_exception(self, exc_type, exc_value, exc_traceback):
-        self._logger.error(
-            "Unexpected exception",
-            exc_info=(exc_type, exc_value, exc_traceback)
-        )
+        self._logger.error("Unexpected exception", exc_info=(exc_type, exc_value, exc_traceback), extra={"markup":False, "highlighter": None})
+
     class TimeFormatter(logging.Formatter):
         """logging.Formatter에 타임존 내부 설정"""
         timezone = 'Asia/Seoul'
+        def __init__(self, fmt, datefmt:str) -> None:
+            super().__init__(fmt=fmt, datefmt=datefmt)
 
         def converter(self, timestamp):
             dt = datetime.fromtimestamp(timestamp, tz=pytz.UTC)
