@@ -18,6 +18,7 @@ class CallLog:
     _STREAM_HANDLER_FORMAT = "[%(asctime)s] [%(filename)s:%(lineno)s] >> %(message)s"
     _FILE_HANDLER_FORMAT = "[%(asctime)s] / %(levelname)s / %(filename)s / line:%(lineno)s >> %(message)s"
     _TIME_FORMAT = "%y%m%d_%Hh%Mm"
+    _FILE_TIME_STAMP = "%y%m%d_%Hh%Mm"
     _str_Level = {
         'c': logging.CRITICAL,
         'f': logging.FATAL,
@@ -71,9 +72,9 @@ class CallLog:
 
     def add_file_handler(self, path:str, H_type=None, when="midnight", interval=1, log_level:Union[str,int]=None, name="file_handler") -> None:
         if H_type == "rotating" or H_type == "R":
-            handler = TimedRotatingFileHandler(filename=f'{path}_{str(datetime.now().strftime(CallLog._TIME_FORMAT))}{self._log_extension}', encoding='utf-8', when=when, interval=interval)
+            handler = TimedRotatingFileHandler(filename=f'{path}_{str(datetime.now().strftime(CallLog._FILE_TIME_STAMP))}{self._log_extension}', encoding='utf-8', when=when, interval=interval)
         else: 
-            handler = logging.FileHandler(filename=f'{path}_{str(datetime.now().strftime(CallLog._TIME_FORMAT))}{self._log_extension}',mode='a', encoding='utf-8')
+            handler = logging.FileHandler(filename=f'{path}_{str(datetime.now().strftime(CallLog._FILE_TIME_STAMP))}{self._log_extension}',mode='a', encoding='utf-8')
         if log_level != None :
             log_level = self._call_level(log_level)
             assert self._root_logger_log_level <= log_level, "Handler level is low than root log level"
