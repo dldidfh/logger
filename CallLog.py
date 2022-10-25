@@ -115,8 +115,11 @@ class CallLog:
         self._logger.exception(msg, *args, **kwargs)
     def critical(self,msg, *args, **kwargs):
         self._logger.critical(msg, *args, **kwargs)
-    def handle_exception(self, exc_type, exc_value, exc_traceback):
-        self._logger.error("Unexpected exception", exc_info=(exc_type, exc_value, exc_traceback), extra={"markup":False, "highlighter": None})
+    def handle_exception(self, *args):
+        if len(args) == 3: 
+            self._logger.error("Unexpected exception", exc_info=(args[0], args[1], args[2]), extra={"markup":False, "highlighter": None})
+        elif len(args) == 1:
+            self._logger.error("Unexpected exception", exc_info=(args[0].exc_type, args[0].exc_value, args[0].exc_traceback), extra={"markup":False, "highlighter": None})
 
     class TimeFormatter(logging.Formatter):
         """logging.Formatter에 타임존 내부 설정"""
